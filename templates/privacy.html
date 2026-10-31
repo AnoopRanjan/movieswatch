@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Privacy Policy & Data Protection{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8 text-slate-300">
+    <div class="space-y-2 border-b border-slate-800 pb-4">
+        <h1 class="text-3xl font-black text-white">Privacy Policy</h1>
+        <p class="text-xs text-slate-400">Compliance with India DPDP Act 2023 & GDPR • Effective November 2026</p>
+    </div>
+
+    <section class="space-y-3 text-sm leading-relaxed">
+        <h3 class="text-base font-bold text-white">1. Information We Collect</h3>
+        <p>
+            When you authenticate using Google Sign-In (OAuth 2.0 / OpenID Connect), CinePulse collects only your public display name, email address, and avatar image. We do not store Google account passwords, credit card numbers, or private personal data on our servers.
+        </p>
+    </section>
+
+    <section class="space-y-3 text-sm leading-relaxed">
+        <h3 class="text-base font-bold text-white">2. Location Data & Permissions</h3>
+        <p>
+            Cinema ticket discovery utilizes the standard browser HTML5 Geolocation API solely to compute geographical distance (in kilometers using the Haversine formula) to nearby multiplexes. Geolocation coordinates are never stored in databases, tracked across sessions, or sold to third parties.
+        </p>
+    </section>
+
+    <section class="space-y-3 text-sm leading-relaxed">
+        <h3 class="text-base font-bold text-white">3. Third-Party Embeds & Cookies</h3>
+        <p>
+            Free movie streaming is delivered via official YouTube IFrame embeds from verified studio channels under YouTube Terms of Service and Google Privacy Policy. AdSense advertising slots operate under strict Google ad policies.
+        </p>
+    </section>
+
+    <section class="space-y-3 text-sm leading-relaxed">
+        <h3 class="text-base font-bold text-white">4. User Right to Erasure</h3>
+        <p>
+            Under statutory DPDP regulations, users may permanently delete their account, viewing history, and watchlist at any time directly through the <a href="{{ url_for('profile') }}" class="text-red-400 underline">Profile Settings</a> page.
+        </p>
+    </section>
+</div>
+{% endblock %}

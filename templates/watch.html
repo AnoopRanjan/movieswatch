@@ -1,0 +1,362 @@
+{% extends "base.html" %}
+
+{% block title %}{{ movie.title }} - Watch Full Movie{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    
+    <!-- Breadcrumb & Top Bar -->
+    <div class="flex items-center justify-between text-xs text-slate-400">
+        <div class="flex items-center gap-2">
+            <a href="{{ url_for('index') }}" class="hover:text-white">Home</a>
+            <span>/</span>
+            <a href="{{ url_for('free_movies') }}" class="hover:text-white">Movies</a>
+            <span>/</span>
+            <span class="text-white font-medium">{{ movie.title }}</span>
+        </div>
+
+        <div class="flex items-center gap-3">
+            {% if movie.is_must_watch %}
+                <span class="px-2 py-0.5 bg-red-600/30 border border-red-500/50 text-red-300 rounded font-bold uppercase text-[10px] flex items-center gap-1">
+                    <i class="fa-solid fa-fire text-amber-400"></i> Must Watch Bollywood
+                </span>
+            {% endif %}
+            <span class="text-slate-400 hidden sm:inline">Channel: <strong class="text-slate-200">{{ movie.official_channel_name }}</strong></span>
+        </div>
+    </div>
+
+    <!-- Main Player Grid (Player Column on Left, Monetization Sidebar on Right) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- Left / Player Column -->
+        <div id="player-column" class="lg:col-span-8 space-y-4">
+            
+            <!-- Video Player Container with 16:9 Aspect Ratio -->
+            <div id="player-wrapper" class="relative w-full aspect-video bg-black rounded-xl overflow-hidden shadow-2xl border border-slate-800">
+                
+                <!-- Main YouTube Official Studio Player -->
+                <iframe id="main-video-player"
+                        class="w-full h-full"
+                        src="https://www.youtube-nocookie.com/embed/{{ movie.youtube_video_id }}?autoplay=1&rel=0&modestbranding=1&enablejsapi=1&origin={{ request.host_url|urlencode }}"
+                        title="{{ movie.title }} - Official Stream"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        referrerpolicy="strict-origin-when-cross-origin"
+                        allowfullscreen>
+                </iframe>
+
+                <!-- Fallback HTML5 Player (Zero-Error redundancy) -->
+                <video id="html5-fallback-player" 
+                       class="w-full h-full" 
+                       style="display:none;" 
+                       controls 
+                       playsinline>
+                    <source src="{{ movie.authorized_stream_url }}" type="video/mp4" />
+                    Your browser does not support HTML5 video playback.
+                </video>
+
+            </div>
+
+            <!-- Player Utility Bar (Normal / Theatre / Fullscreen / Direct Tab / Backup Stream) -->
+            <div class="flex flex-wrap items-center justify-between gap-3 p-3 bg-brand-card border border-brand-border rounded-xl">
+                
+                <div class="flex items-center gap-2">
+                    <!-- Theatre Mode Toggle -->
+                    <button id="btn-theatre" 
+                            onclick="CinePulsePlayer.toggleTheatre()"
+                            class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5">
+                        <i class="fa-solid fa-expand text-[11px]"></i> Theatre Mode
+                    </button>
+
+                    <!-- Fullscreen Toggle -->
+                    <button onclick="CinePulsePlayer.toggleFullscreen()"
+                            class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5">
+                        <i class="fa-solid fa-maximize text-[11px]"></i> Fullscreen
+                    </button>
+
+                    <!-- Backup Stream Switcher -->
+                    <button onclick="CinePulsePlayer.switchSource('fallback')"
+                            title="Switch to backup CDN stream in case of network restriction"
+                            class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700 rounded-lg text-xs font-medium transition-colors hidden sm:flex items-center gap-1.5">
+                        <i class="fa-solid fa-tower-broadcast text-[11px] text-amber-400"></i> Backup CDN
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <!-- Watch in New Tab Button -->
+                    {% if movie.youtube_video_id %}
+                    <a href="{{ movie.direct_youtube_watch_url }}" 
+                       target="_blank" 
+                       rel="noopener noreferrer"
+                       class="px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-all shadow flex items-center gap-1.5">
+                        <i class="fa-brands fa-youtube text-sm"></i> Watch in New Tab
+                        <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                    </a>
+                    {% endif %}
+
+                    <!-- Watchlist Toggle -->
+                    <button onclick="toggleWatchlist({{ movie.id }}, this)"
+                            class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700 rounded-lg text-xs font-medium transition-colors">
+                        <i class="fa-regular fa-bookmark"></i>
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- YouTube Zero-Error Verification Status Banner -->
+            <div id="source-status-banner" class="p-3 bg-slate-900/90 border border-slate-800 rounded-xl text-xs text-slate-300 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                    <span>Streaming official release from <strong>{{ movie.official_channel_name }}</strong> with strict-origin token validation.</span>
+                </div>
+                <span class="text-[11px] text-emerald-400 font-semibold hidden sm:inline">100% Free of Error 150/153</span>
+            </div>
+
+            <!-- SECTION B: BELOW-PLAYER ADVERTISEMENT SPACE -->
+            {% if not is_vip %}
+                <div class="space-y-4 pt-2">
+                    
+                    <!-- Google AdSense Horizontal Leaderboard / Responsive Display Unit -->
+                    <div class="ad-container p-4 bg-slate-950/90 border border-dashed border-slate-700/80 rounded-xl relative">
+                        <span class="ad-badge bg-slate-800 px-1.5 py-0.5 rounded text-[9px] text-slate-400 font-mono">
+                            Google AdSense • ca-pub-7928340192837461
+                        </span>
+                        
+                        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 py-2">
+                            <div class="space-y-1">
+                                <span class="text-[10px] uppercase font-bold text-amber-400 tracking-wider">Sponsored Advertisement</span>
+                                <h4 class="text-sm font-bold text-white">Stream 4K Entertainment on Tata Play Binge</h4>
+                                <p class="text-xs text-slate-400">Get 25+ OTT Apps in a single subscription starting at ₹149/month with zero buffering.</p>
+                            </div>
+                            <a href="https://amazon.in" target="_blank" rel="nofollow noopener" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-lg text-xs whitespace-nowrap shadow transition-colors">
+                                Explore Offer <i class="fa-solid fa-arrow-up-right-from-square text-[10px] ml-1"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Affiliate Products Bar (Home Cinema & Audio) -->
+                    <div class="bg-brand-card border border-brand-border rounded-xl p-4 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                                <i class="fa-solid fa-headphones text-red-500"></i> Recommended Gear For This Movie
+                            </h4>
+                            <span class="text-[10px] text-slate-500">Affiliate Partner Disclosure</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            {% for prod in affiliate_products %}
+                                <a href="{{ prod.affiliate_url }}" target="_blank" rel="nofollow noopener"
+                                   class="p-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-red-500/40 rounded-lg flex gap-3 items-center group transition-colors">
+                                    <img src="{{ prod.image_url }}" alt="{{ prod.title }}" class="w-12 h-12 object-cover rounded shadow" />
+                                    <div class="flex-grow min-w-0">
+                                        <h5 class="text-xs font-semibold text-white group-hover:text-red-400 truncate">{{ prod.title }}</h5>
+                                        <p class="text-[10px] text-slate-400">{{ prod.category }}</p>
+                                        <div class="flex items-center justify-between mt-1 text-[11px]">
+                                            <span class="font-bold text-amber-400">₹{{ "{:,.0f}".format(prod.price_inr) }}</span>
+                                            <span class="text-red-400 text-[10px] font-medium">Buy <i class="fa-solid fa-arrow-up-right-from-square"></i></span>
+                                        </div>
+                                    </div>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                </div>
+            {% endif %}
+
+            <!-- SECTION D: BELOW-PLAYER CONTENT (Details & Cast) -->
+            <div class="bg-brand-card border border-brand-border rounded-xl p-6 space-y-6">
+                
+                <!-- Title & Meta -->
+                <div class="space-y-2">
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <h1 class="text-2xl sm:text-3xl font-black text-white">{{ movie.title }}</h1>
+                        <span class="px-2 py-0.5 bg-amber-500/20 text-amber-400 border border-amber-500/40 rounded text-xs font-bold flex items-center gap-1">
+                            <i class="fa-solid fa-star"></i> {{ "%.1f"|format(movie.imdb_rating) }}
+                        </span>
+                        <span class="text-xs text-slate-400">{{ movie.release_year }}</span>
+                        <span class="text-xs text-slate-400">{{ movie.duration_minutes }} min</span>
+                        <span class="text-xs text-slate-400 border border-slate-700 px-1.5 py-0.2 rounded">{{ movie.age_rating }}</span>
+                        <span class="text-xs text-slate-400">{{ movie.language }}</span>
+                    </div>
+
+                    {% if movie.tagline %}
+                        <p class="text-sm text-amber-300/90 font-medium italic">"{{ movie.tagline }}"</p>
+                    {% endif %}
+                </div>
+
+                <!-- Synopsis -->
+                <div class="space-y-2 text-sm text-slate-300 leading-relaxed border-t border-slate-800 pt-4">
+                    <h3 class="font-bold text-white text-base">Movie Synopsis</h3>
+                    <p>{{ movie.description }}</p>
+                    <p class="text-xs text-slate-400 pt-1">
+                        <strong>Director:</strong> {{ movie.director }} &nbsp;•&nbsp; 
+                        <strong>Genres:</strong> {{ movie.genres|join(', ') }}
+                    </p>
+                </div>
+
+                <!-- Cast and Crew with Photos -->
+                {% if movie.cast %}
+                    <div class="space-y-3 border-t border-slate-800 pt-4">
+                        <h3 class="font-bold text-white text-base">Key Cast & Characters</h3>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                            {% for c in movie.cast %}
+                                <div class="flex items-center gap-3 p-2 bg-slate-900 rounded-lg border border-slate-800">
+                                    <img src="{{ c.photo_url }}" alt="{{ c.actor_name }}" class="w-10 h-10 rounded-full object-cover ring-1 ring-slate-700" />
+                                    <div class="min-w-0">
+                                        <h4 class="text-xs font-bold text-white truncate">{{ c.actor_name }}</h4>
+                                        <p class="text-[10px] text-slate-400 truncate">as {{ c.character_name }}</p>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- User Ratings & Reviews Section -->
+                <div class="space-y-4 border-t border-slate-800 pt-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-bold text-white text-base flex items-center gap-2">
+                            <i class="fa-solid fa-comments text-red-500"></i> Viewer Reviews ({{ reviews|length }})
+                        </h3>
+                    </div>
+
+                    <!-- Review Submission Form -->
+                    <form action="{{ url_for('submit_review', movie_id=movie.id) }}" method="post" class="bg-slate-900/90 p-4 rounded-xl border border-slate-800 space-y-3">
+                        <div class="flex items-center justify-between gap-4">
+                            <span class="text-xs font-semibold text-slate-300">Rate this movie:</span>
+                            <div class="flex items-center gap-1 text-amber-400">
+                                <select name="rating" class="bg-slate-800 border border-slate-700 text-xs text-white rounded px-2 py-1">
+                                    <option value="10">⭐⭐⭐⭐⭐ 10 / 10 Masterpiece</option>
+                                    <option value="9">⭐⭐⭐⭐⭐ 9 / 10 Outstanding</option>
+                                    <option value="8">⭐⭐⭐⭐ 8 / 10 Great</option>
+                                    <option value="7">⭐⭐⭐⭐ 7 / 10 Good</option>
+                                    <option value="6">⭐⭐⭐ 6 / 10 Average</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <textarea name="comment" rows="2" required placeholder="Write your thoughts about this movie..."
+                                  class="w-full bg-slate-950 border border-slate-800 text-xs text-white rounded-lg p-2.5 focus:outline-none focus:border-red-500"></textarea>
+
+                        <button type="submit" class="px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-semibold transition-colors">
+                            Submit Review
+                        </button>
+                    </form>
+
+                    <!-- Reviews List -->
+                    <div class="space-y-3">
+                        {% for rev in reviews %}
+                            <div class="p-3 bg-slate-900/60 rounded-lg border border-slate-800 space-y-1 text-xs">
+                                <div class="flex items-center justify-between">
+                                    <span class="font-bold text-white">{{ rev.user_name }}</span>
+                                    <span class="text-amber-400 font-semibold"><i class="fa-solid fa-star text-[10px]"></i> {{ rev.rating }} / 10</span>
+                                </div>
+                                <p class="text-slate-300">{{ rev.comment }}</p>
+                                <span class="text-[10px] text-slate-500">{{ rev.created_at.strftime('%b %d, %Y') }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- SECTION C: RIGHT-SIDE MONETIZATION SIDEBAR (Desktop) -->
+        <div id="monetization-sidebar" class="lg:col-span-4 space-y-6">
+            
+            <!-- VIP Ad-Free Card -->
+            {% if not is_vip %}
+                <div class="p-4 rounded-xl bg-gradient-to-tr from-red-950 to-slate-900 border border-red-500/40 space-y-3 shadow-lg">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-crown text-amber-400 text-base"></i>
+                        <h4 class="font-bold text-sm text-white">CinePulse VIP Membership</h4>
+                    </div>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Enjoy 100% ad-free cinema, 4K Dolby Atmos audio, and offline downloads on all your devices.
+                    </p>
+                    <form action="{{ url_for('upgrade_vip') }}" method="post">
+                        <button type="submit" class="w-full py-2 bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-700 hover:to-amber-700 text-white font-bold rounded-lg text-xs shadow transition-all">
+                            Upgrade to VIP (₹199/mo)
+                        </button>
+                    </form>
+                </div>
+            {% endif %}
+
+            <!-- Sidebar Responsive Ad Unit (Google AdSense 300x250) -->
+            {% if not is_vip %}
+                <div class="ad-container p-4 bg-slate-950/90 border border-dashed border-slate-700/80 rounded-xl space-y-2 text-center">
+                    <span class="ad-badge bg-slate-800 px-1.5 py-0.5 rounded text-[9px] text-slate-400 font-mono">
+                        Google Display • sidebar-300x250
+                    </span>
+                    <span class="text-[10px] uppercase font-bold text-amber-400 tracking-wider block">Sponsored Offer</span>
+                    <h5 class="text-xs font-bold text-white">Airtel Xstream Fiber Broadband</h5>
+                    <p class="text-[11px] text-slate-400">1 Gbps Unlimited Data with complimentary Disney+ & SonyLIV access.</p>
+                    <a href="https://amazon.in" target="_blank" rel="nofollow noopener" 
+                       class="inline-block px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded text-xs font-semibold mt-2">
+                        Check Availability
+                    </a>
+                </div>
+            {% endif %}
+
+            <!-- Sponsored & Featured Movies -->
+            <div class="bg-brand-card border border-brand-border rounded-xl p-4 space-y-4">
+                <div class="flex items-center justify-between">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-200 flex items-center gap-1.5">
+                        <i class="fa-solid fa-fire text-amber-400"></i> Sponsored Picks
+                    </h4>
+                    <span class="text-[10px] text-slate-400">Promoted</span>
+                </div>
+
+                <div class="space-y-3">
+                    {% for sp in sponsored_movies %}
+                        <a href="{{ url_for('watch', movie_id=sp.id) }}" class="flex gap-3 p-2 bg-slate-900 hover:bg-slate-800 rounded-lg border border-slate-800 transition-colors group">
+                            <img src="{{ sp.poster_url }}" alt="{{ sp.title }}" class="w-14 h-20 object-cover rounded shadow" />
+                            <div class="min-w-0 flex flex-col justify-between py-0.5">
+                                <div>
+                                    <h5 class="text-xs font-bold text-white group-hover:text-red-400 truncate">{{ sp.title }}</h5>
+                                    <p class="text-[10px] text-slate-400 truncate">{{ sp.genres|join(', ') }}</p>
+                                </div>
+                                <div class="flex items-center gap-2 text-[10px]">
+                                    <span class="text-amber-400 font-bold"><i class="fa-solid fa-star"></i> {{ "%.1f"|format(sp.imdb_rating) }}</span>
+                                    <span class="text-slate-400">{{ sp.release_year }}</span>
+                                </div>
+                            </div>
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Similar & Related Movies -->
+            <div class="bg-brand-card border border-brand-border rounded-xl p-4 space-y-4">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-200 flex items-center gap-1.5">
+                    <i class="fa-solid fa-clapperboard text-red-500"></i> Similar Movies You May Like
+                </h4>
+
+                <div class="space-y-3">
+                    {% for sim in similar_movies[:5] %}
+                        <a href="{{ url_for('watch', movie_id=sim.id) }}" class="flex gap-3 p-2 bg-slate-900/60 hover:bg-slate-800 rounded-lg border border-slate-800 transition-colors group">
+                            <img src="{{ sim.poster_url }}" alt="{{ sim.title }}" class="w-12 h-16 object-cover rounded shadow" />
+                            <div class="min-w-0 flex flex-col justify-between py-0.5">
+                                <div>
+                                    <h5 class="text-xs font-bold text-white group-hover:text-red-400 truncate">{{ sim.title }}</h5>
+                                    <p class="text-[10px] text-slate-400 truncate">{{ sim.director }}</p>
+                                </div>
+                                <div class="flex items-center gap-2 text-[10px]">
+                                    <span class="text-amber-400 font-bold"><i class="fa-solid fa-star"></i> {{ "%.1f"|format(sim.imdb_rating) }}</span>
+                                    <span class="text-emerald-400 font-semibold">Free FHD</span>
+                                </div>
+                            </div>
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}

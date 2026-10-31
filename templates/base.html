@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <title>{% block title %}CinePulse{% endblock %} - Premium Movie Streaming & Discovery</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            red: '#e50914',
+                            redHover: '#f40612',
+                            gold: '#f59e0b',
+                            dark: '#0a0b0e',
+                            card: '#12141a',
+                            border: 'rgba(255, 255, 255, 0.08)'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- FontAwesome 6 CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- Google Fonts Inter & Montserrat -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Montserrat:wght@800;900&display=swap" rel="stylesheet">
+
+    <!-- CinePulse Custom Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}" />
+</head>
+<body class="bg-brand-dark text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-red-600 selection:text-white">
+
+    <!-- Top Navigation Bar -->
+    <header class="sticky top-0 z-50 nav-glass transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+            
+            <!-- Logo & Main Nav -->
+            <div class="flex items-center gap-6 lg:gap-8">
+                <a href="{{ url_for('index') }}" class="flex items-center gap-2 group">
+                    <div class="w-9 h-9 rounded-lg bg-gradient-to-tr from-red-600 to-amber-500 flex items-center justify-center shadow-lg shadow-red-900/30 group-hover:scale-105 transition-transform">
+                        <i class="fa-solid fa-play text-white text-sm ml-0.5"></i>
+                    </div>
+                    <span class="text-xl font-black tracking-tight font-['Montserrat'] text-white">
+                        CINE<span class="text-red-600">PULSE</span>
+                    </span>
+                    <span class="text-[10px] px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 font-bold rounded border border-yellow-500/30 uppercase tracking-widest hidden sm:inline-block">
+                        PYTHON 3.12
+                    </span>
+                </a>
+
+                <nav class="hidden md:flex items-center gap-1 text-sm font-medium">
+                    <a href="{{ url_for('index') }}" class="px-3 py-2 rounded-md hover:text-white hover:bg-white/5 transition-colors text-slate-300">
+                        Home
+                    </a>
+                    
+                    <!-- Must Watch Tab with flame indicator -->
+                    <a href="{{ url_for('must_watch') }}" class="relative px-3 py-2 rounded-md text-amber-300 hover:text-amber-200 hover:bg-amber-500/10 transition-colors font-semibold flex items-center gap-1.5">
+                        <i class="fa-solid fa-fire text-red-500 text-xs"></i>
+                        Must Watch
+                        <span class="text-[9px] bg-red-600 text-white font-black px-1.5 py-0.2 rounded-full uppercase tracking-tighter animate-pulse">
+                            Free
+                        </span>
+                    </a>
+
+                    <a href="{{ url_for('free_movies') }}" class="px-3 py-2 rounded-md hover:text-white hover:bg-white/5 transition-colors text-slate-300">
+                        Free Movies
+                    </a>
+                    <a href="{{ url_for('trailers') }}" class="px-3 py-2 rounded-md hover:text-white hover:bg-white/5 transition-colors text-slate-300">
+                        Trailers
+                    </a>
+                    <a href="{{ url_for('cinemas') }}" class="px-3 py-2 rounded-md hover:text-white hover:bg-white/5 transition-colors text-slate-300 flex items-center gap-1">
+                        <i class="fa-solid fa-ticket text-xs text-sky-400"></i>
+                        Tickets
+                    </a>
+                    <a href="{{ url_for('premium_movies') }}" class="px-3 py-2 rounded-md hover:text-white hover:bg-white/5 transition-colors text-slate-300">
+                        Rent & Buy
+                    </a>
+                    <a href="{{ url_for('actors_list') }}" class="px-3 py-2 rounded-md hover:text-white hover:bg-white/5 transition-colors text-slate-300">
+                        Actors
+                    </a>
+                </nav>
+            </div>
+
+            <!-- Global Search & User Profile -->
+            <div class="flex items-center gap-3">
+                
+                <!-- Search Box -->
+                <form action="{{ url_for('search') }}" method="get" class="relative hidden sm:block">
+                    <input type="text" name="q" placeholder="Movies, actors, genres..."
+                           value="{{ search_query|default('') }}"
+                           class="w-48 lg:w-64 pl-9 pr-3 py-1.5 bg-slate-900/90 border border-slate-700/80 rounded-full text-xs text-white placeholder-slate-400 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all" />
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-xs text-slate-400"></i>
+                </form>
+
+                <!-- Watchlist shortcut -->
+                <a href="{{ url_for('watchlist') }}" title="My Watchlist" class="p-2 text-slate-300 hover:text-red-500 hover:bg-white/5 rounded-full transition-colors relative">
+                    <i class="fa-regular fa-bookmark text-base"></i>
+                </a>
+
+                <!-- Admin shortcut -->
+                <a href="{{ url_for('admin_dashboard') }}" title="Admin Dashboard" class="p-2 text-slate-300 hover:text-amber-400 hover:bg-white/5 rounded-full transition-colors">
+                    <i class="fa-solid fa-chart-line text-base"></i>
+                </a>
+
+                <!-- User Profile Pill -->
+                <a href="{{ url_for('profile') }}" class="flex items-center gap-2 pl-2 pr-3 py-1 bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 rounded-full transition-colors group">
+                    <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80" 
+                         alt="Priya Sharma" 
+                         class="w-7 h-7 rounded-full object-cover ring-1 ring-red-500/50" />
+                    <span class="text-xs font-medium text-slate-200 hidden lg:inline-block group-hover:text-white">
+                        Priya
+                    </span>
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="bg-emerald-950/80 border-b border-emerald-500/50 text-emerald-200 px-4 py-2.5 text-center text-xs font-medium flex items-center justify-center gap-2">
+              <i class="fa-solid fa-circle-check text-emerald-400"></i>
+              <span>{{ message }}</span>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <!-- Main Content Area -->
+    <main class="flex-grow">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Comprehensive Footer -->
+    <footer class="bg-black/90 border-t border-slate-800/80 mt-16 pt-12 pb-8 text-xs text-slate-400">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+            
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <!-- Platform identity -->
+                <div class="space-y-3">
+                    <div class="flex items-center gap-2">
+                        <div class="w-7 h-7 rounded bg-red-600 flex items-center justify-center text-white font-black text-xs">
+                            <i class="fa-solid fa-play"></i>
+                        </div>
+                        <span class="text-base font-black tracking-tight text-white font-['Montserrat']">
+                            CINE<span class="text-red-600">PULSE</span>
+                        </span>
+                    </div>
+                    <p class="text-slate-400 leading-relaxed text-xs">
+                        Next-generation cinema discovery, legal free streaming via official YouTube studio channels, verified trailers, and GPS cinema ticket booking across India.
+                    </p>
+                    <div class="flex items-center gap-3 text-slate-400 pt-2">
+                        <a href="#" class="hover:text-red-500 transition-colors"><i class="fa-brands fa-x-twitter text-base"></i></a>
+                        <a href="#" class="hover:text-red-500 transition-colors"><i class="fa-brands fa-youtube text-base"></i></a>
+                        <a href="#" class="hover:text-red-500 transition-colors"><i class="fa-brands fa-instagram text-base"></i></a>
+                        <a href="#" class="hover:text-red-500 transition-colors"><i class="fa-brands fa-github text-base"></i></a>
+                    </div>
+                </div>
+
+                <!-- Navigation Links -->
+                <div>
+                    <h4 class="text-slate-200 font-semibold mb-3 uppercase tracking-wider text-[11px]">Discover</h4>
+                    <ul class="space-y-2">
+                        <li><a href="{{ url_for('must_watch') }}" class="hover:text-white transition-colors text-amber-400 font-medium"><i class="fa-solid fa-fire text-xs mr-1 text-red-500"></i> Must Watch Bollywood</a></li>
+                        <li><a href="{{ url_for('free_movies') }}" class="hover:text-white transition-colors">Free Full Movies</a></li>
+                        <li><a href="{{ url_for('trailers') }}" class="hover:text-white transition-colors">Official Trailers Feed</a></li>
+                        <li><a href="{{ url_for('cinemas') }}" class="hover:text-white transition-colors">Multiplex Ticket Booking</a></li>
+                        <li><a href="{{ url_for('premium_movies') }}" class="hover:text-white transition-colors">Rentals & Purchases</a></li>
+                        <li><a href="{{ url_for('actors_list') }}" class="hover:text-white transition-colors">Superstar Filmographies</a></li>
+                    </ul>
+                </div>
+
+                <!-- Legal & Compliance -->
+                <div>
+                    <h4 class="text-slate-200 font-semibold mb-3 uppercase tracking-wider text-[11px]">Compliance & Security</h4>
+                    <ul class="space-y-2">
+                        <li><a href="{{ url_for('privacy') }}" class="hover:text-white transition-colors">Privacy Policy (GDPR / DPDP)</a></li>
+                        <li><a href="{{ url_for('terms') }}" class="hover:text-white transition-colors">Terms of Service</a></li>
+                        <li><a href="{{ url_for('profile') }}" class="hover:text-white transition-colors">User Privacy Controls</a></li>
+                        <li><a href="{{ url_for('admin_dashboard') }}" class="hover:text-amber-400 transition-colors">Admin Governance Portal</a></li>
+                    </ul>
+                </div>
+
+                <!-- Technology & Architecture -->
+                <div>
+                    <h4 class="text-slate-200 font-semibold mb-3 uppercase tracking-wider text-[11px]">Architecture Stack</h4>
+                    <ul class="space-y-1.5 text-[11px] text-slate-400">
+                        <li><i class="fa-brands fa-python text-yellow-400 mr-1.5"></i> Python 3.12 & Flask 3.1</li>
+                        <li><i class="fa-solid fa-code text-blue-400 mr-1.5"></i> Jinja2 Templating Engine</li>
+                        <li><i class="fa-brands fa-youtube text-red-500 mr-1.5"></i> YouTube IFrame API v3 Verified</li>
+                        <li><i class="fa-solid fa-location-dot text-emerald-400 mr-1.5"></i> HTML5 Geolocation & Haversine Proximity</li>
+                        <li><i class="fa-solid fa-shield-halved text-amber-400 mr-1.5"></i> Zero Error 150/153 Origin Security</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Statutory Partner Disclosures & Terms -->
+            <div class="pt-6 border-t border-slate-800/60 space-y-3 text-[11px] text-slate-300 leading-relaxed">
+                <div class="p-3 rounded bg-slate-900/50 border border-slate-800">
+                    <p class="font-semibold text-slate-200 mb-1">
+                        <i class="fa-solid fa-scale-balanced mr-1 text-amber-400"></i> Statutory Partner Disclosures & Copyright Notice:
+                    </p>
+                    <p>
+                        Cinema ticket bookings and showtimes are facilitated via external deep links to authorized ticketing partners <strong>BookMyShow (Bigtree Entertainment Pvt. Ltd.)</strong> and <strong>Cinepolis India</strong>. CinePulse does not collect ticketing commissions or issue physical tickets directly.
+                    </p>
+                    <p class="mt-1">
+                        All free movies and trailers displayed on CinePulse are legally streamed via official, publicly accessible embeds provided by authorized studio and distributor channels (including Red Chillies Entertainment, Rajshri, Shemaroo, Ultra Movie Parlour, Warner Bros., Universal Pictures, Marvel Studios, Paramount Pictures). CinePulse does not host, upload, or alter video files and fully adheres to the YouTube Terms of Service and Copyright Fair Use guidelines.
+                    </p>
+                </div>
+
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-400 pt-2">
+                    <p>© {{ current_year|default(2026) }} CinePulse Platform. All rights reserved.</p>
+                    <p class="flex items-center gap-2">
+                        <span>Running on Python 3.12 Flask WSGI Server</span>
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </footer>
+
+    <!-- CinePulse Scripts -->
+    <script src="{{ url_for('static', filename='js/player.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/cinemas.js') }}"></script>
+</body>
+</html>

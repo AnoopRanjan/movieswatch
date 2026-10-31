@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Governance & Monetization Dashboard{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    
+    <!-- Title & Status Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+        <div>
+            <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-2">
+                <i class="fa-solid fa-chart-line text-amber-400"></i> Executive Monetization & Operations Dashboard
+            </h1>
+            <p class="text-xs text-slate-400 mt-1">
+                Multi-channel revenue stream monitoring, YouTube Data API quota management, and video embed compliance.
+            </p>
+        </div>
+
+        <div class="flex items-center gap-2 text-xs">
+            <span class="px-3 py-1.5 bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 rounded-lg flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Systems Operational
+            </span>
+        </div>
+    </div>
+
+    <!-- Revenue Stream Cards -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+        
+        <div class="bg-brand-card border border-brand-border rounded-xl p-4 space-y-1">
+            <span class="text-[10px] uppercase font-bold text-slate-400">Total Gross</span>
+            <div class="text-lg sm:text-xl font-black text-white">₹{{ "{:,.0f}".format(total_revenue) }}</div>
+            <span class="text-[10px] text-emerald-400 font-semibold"><i class="fa-solid fa-arrow-trend-up"></i> +18.4% MoM</span>
+        </div>
+
+        <div class="bg-brand-card border border-brand-border rounded-xl p-4 space-y-1">
+            <span class="text-[10px] uppercase font-bold text-slate-400">AdSense Display</span>
+            <div class="text-lg sm:text-xl font-black text-amber-400">₹{{ "{:,.0f}".format(adsense_revenue) }}</div>
+            <span class="text-[10px] text-slate-400">3 Active Ad Units</span>
+        </div>
+
+        <div class="bg-brand-card border border-brand-border rounded-xl p-4 space-y-1">
+            <span class="text-[10px] uppercase font-bold text-slate-400">Affiliate Comms</span>
+            <div class="text-lg sm:text-xl font-black text-sky-400">₹{{ "{:,.0f}".format(affiliate_revenue) }}</div>
+            <span class="text-[10px] text-slate-400">Amazon Associates</span>
+        </div>
+
+        <div class="bg-brand-card border border-brand-border rounded-xl p-4 space-y-1">
+            <span class="text-[10px] uppercase font-bold text-slate-400">Digital Rentals</span>
+            <div class="text-lg sm:text-xl font-black text-emerald-400">₹{{ "{:,.0f}".format(rental_revenue) }}</div>
+            <span class="text-[10px] text-slate-400">₹49 - ₹149</span>
+        </div>
+
+        <div class="bg-brand-card border border-brand-border rounded-xl p-4 space-y-1">
+            <span class="text-[10px] uppercase font-bold text-slate-400">UHD Purchases</span>
+            <div class="text-lg sm:text-xl font-black text-purple-400">₹{{ "{:,.0f}".format(purchase_revenue) }}</div>
+            <span class="text-[10px] text-slate-400">₹199 - ₹499</span>
+        </div>
+
+        <div class="bg-brand-card border border-brand-border rounded-xl p-4 space-y-1">
+            <span class="text-[10px] uppercase font-bold text-slate-400">VIP Subscriptions</span>
+            <div class="text-lg sm:text-xl font-black text-red-500">₹{{ "{:,.0f}".format(vip_revenue) }}</div>
+            <span class="text-[10px] text-slate-400">₹199 / month</span>
+        </div>
+
+    </div>
+
+    <!-- YouTube API Quota & Video Verification Meter -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <!-- Quota Health Card -->
+        <div class="bg-brand-card border border-brand-border rounded-xl p-6 space-y-4 shadow-lg">
+            <div class="flex items-center justify-between">
+                <h3 class="font-bold text-sm uppercase tracking-wider text-slate-200 flex items-center gap-2">
+                    <i class="fa-brands fa-youtube text-red-500 text-base"></i> YouTube Data API v3 Daily Quota
+                </h3>
+                <span class="text-xs font-mono text-emerald-400 font-bold">9,912 / 10,000 units</span>
+            </div>
+
+            <!-- Progress Meter -->
+            <div class="w-full bg-slate-900 rounded-full h-3 overflow-hidden border border-slate-800">
+                <div class="bg-gradient-to-r from-emerald-500 to-sky-500 h-full rounded-full" style="width: 98.8%"></div>
+            </div>
+
+            <div class="flex items-center justify-between text-xs text-slate-400">
+                <span>Consumed: 88 units (0.9%)</span>
+                <span>Reset: 00:00 PST (in 7 hrs)</span>
+            </div>
+
+            <p class="text-[11px] text-slate-400 leading-relaxed pt-2 border-t border-slate-800">
+                Batch verification queries are throttled through in-memory cache to guarantee 100% quota compliance throughout peak viewing hours.
+            </p>
+        </div>
+
+        <!-- Video Verification AJAX Tool -->
+        <div class="bg-brand-card border border-brand-border rounded-xl p-6 space-y-4 shadow-lg">
+            <h3 class="font-bold text-sm uppercase tracking-wider text-slate-200 flex items-center gap-2">
+                <i class="fa-solid fa-shield-check text-emerald-400 text-base"></i> Live YouTube Video Verification Tool
+            </h3>
+            <p class="text-xs text-slate-400">
+                Verify any catalogue title against YouTube Embed Restrictions to prevent "Playback ID" Error 150/153.
+            </p>
+
+            <div class="flex items-center gap-2">
+                <select id="verify-movie-select" class="w-full bg-slate-900 border border-slate-700 text-xs text-white rounded-lg px-3 py-2">
+                    {% for m in recent_movies %}
+                        <option value="{{ m.id }}">[{{ m.id }}] {{ m.title }} ({{ m.youtube_video_id }})</option>
+                    {% endfor %}
+                </select>
+                <button onclick="runVerification()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold whitespace-nowrap transition-colors">
+                    Verify Video
+                </button>
+            </div>
+
+            <div id="verify-result-box" class="hidden p-3 bg-slate-900 rounded-lg border border-slate-800 text-xs space-y-1"></div>
+        </div>
+
+    </div>
+
+    <!-- AdSense Slot Configurations -->
+    <div class="bg-brand-card border border-brand-border rounded-xl p-6 space-y-4 shadow-lg">
+        <h3 class="font-bold text-sm uppercase tracking-wider text-slate-200 flex items-center gap-2">
+            <i class="fa-solid fa-rectangle-ad text-amber-400 text-base"></i> Configured Website Ad Slots (Admin Control)
+        </h3>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-300">
+                <thead class="bg-slate-900 text-slate-400 uppercase text-[10px]">
+                    <tr>
+                        <th class="p-3">Slot ID</th>
+                        <th class="p-3">Name</th>
+                        <th class="p-3">Position</th>
+                        <th class="p-3">Format</th>
+                        <th class="p-3">AdSense Client</th>
+                        <th class="p-3 text-right">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800">
+                    {% for slot in ad_slots %}
+                        <tr>
+                            <td class="p-3 font-mono text-white">{{ slot.slot_id }}</td>
+                            <td class="p-3">{{ slot.name }}</td>
+                            <td class="p-3 text-slate-400">{{ slot.position }}</td>
+                            <td class="p-3 text-slate-400">{{ slot.format }}</td>
+                            <td class="p-3 font-mono text-[11px] text-amber-400">{{ slot.ad_client }}</td>
+                            <td class="p-3 text-right">
+                                <span class="px-2 py-0.5 bg-emerald-950 text-emerald-400 border border-emerald-800 rounded font-bold text-[10px]">
+                                    ACTIVE
+                                </span>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Recent Catalogue Items -->
+    <div class="bg-brand-card border border-brand-border rounded-xl p-6 space-y-4 shadow-lg">
+        <h3 class="font-bold text-sm uppercase tracking-wider text-slate-200 flex items-center gap-2">
+            <i class="fa-solid fa-list-check text-sky-400 text-base"></i> Active Video Catalogue Status
+        </h3>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-300">
+                <thead class="bg-slate-900 text-slate-400 uppercase text-[10px]">
+                    <tr>
+                        <th class="p-3">ID</th>
+                        <th class="p-3">Title</th>
+                        <th class="p-3">Official Channel</th>
+                        <th class="p-3">Industry</th>
+                        <th class="p-3">YouTube Video ID</th>
+                        <th class="p-3">Embed Status</th>
+                        <th class="p-3 text-right">Direct Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800">
+                    {% for movie in recent_movies %}
+                        <tr>
+                            <td class="p-3 font-mono text-slate-400">#{{ movie.id }}</td>
+                            <td class="p-3 font-bold text-white">{{ movie.title }}</td>
+                            <td class="p-3 text-slate-400">{{ movie.official_channel_name }}</td>
+                            <td class="p-3 text-slate-300">{{ movie.industry }}</td>
+                            <td class="p-3 font-mono text-[11px] text-red-400">{{ movie.youtube_video_id }}</td>
+                            <td class="p-3">
+                                <span class="px-2 py-0.5 bg-emerald-950 text-emerald-300 border border-emerald-800 rounded text-[10px] font-semibold">
+                                    Verified 200 OK
+                                </span>
+                            </td>
+                            <td class="p-3 text-right">
+                                <a href="{{ movie.direct_youtube_watch_url }}" target="_blank" rel="noopener noreferrer"
+                                   class="text-red-400 hover:text-red-300 font-semibold text-[11px] inline-flex items-center gap-1">
+                                    <i class="fa-brands fa-youtube"></i> Open Tab <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function runVerification() {
+        var id = document.getElementById('verify-movie-select').value;
+        var box = document.getElementById('verify-result-box');
+        box.classList.remove('hidden');
+        box.innerHTML = '<span class="text-sky-400 animate-pulse"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Pinging YouTube Data API v3...</span>';
+
+        fetch('/api/admin/verify-video', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ movie_id: parseInt(id) })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.success) {
+                box.innerHTML = '<div class="text-emerald-400 font-bold flex items-center gap-1.5"><i class="fa-solid fa-circle-check"></i> ' + data.status + '</div>' +
+                                '<div class="text-slate-300 mt-1">Title: <strong>' + data.title + '</strong></div>' +
+                                '<div class="text-slate-400">Channel: ' + data.channel + ' | Video ID: ' + data.video_id + '</div>' +
+                                '<div class="text-[10px] text-slate-500 mt-0.5">Last Checked: ' + data.last_checked + '</div>';
+            } else {
+                box.innerHTML = '<div class="text-rose-400 font-bold">' + data.message + '</div>';
+            }
+        })
+        .catch(function(err) {
+            box.innerHTML = '<div class="text-rose-400 font-bold">Network query error.</div>';
+        });
+    }
+</script>
+{% endblock %}

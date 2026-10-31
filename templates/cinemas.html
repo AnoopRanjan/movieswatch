@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}Cinema Ticket Booking & Multiplex Proximity{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    
+    <!-- Hero Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+        <div>
+            <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-2">
+                <i class="fa-solid fa-ticket text-sky-400"></i> Cinema Ticket Booking & Nearby Multiplexes
+            </h1>
+            <p class="text-xs text-slate-400 mt-1">
+                Find showtimes at IMAX, 4DX & Dolby Atmos screens near you with real-time GPS proximity.
+            </p>
+        </div>
+
+        <!-- Location Status & City Selector -->
+        <div class="flex items-center gap-3">
+            <button onclick="CinemaLocator.requestLocation()" 
+                    class="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-xs font-semibold shadow transition-colors flex items-center gap-2">
+                <i class="fa-solid fa-location-crosshairs"></i> Use GPS Proximity
+            </button>
+
+            <!-- Manual City Selector -->
+            <form action="{{ url_for('cinemas') }}" method="get">
+                <select name="city" onchange="this.form.submit()" class="bg-slate-900 border border-slate-700 text-xs text-white rounded-lg px-3 py-2">
+                    {% for city in supported_cities %}
+                        <option value="{{ city }}" {% if selected_city|lower == city|lower %}selected{% endif %}>{{ city }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+    </div>
+
+    <!-- Statutory Booking Disclosure Banner -->
+    <div class="p-4 bg-sky-950/40 border border-sky-500/30 rounded-xl flex items-start gap-3 text-xs text-sky-200">
+        <i class="fa-solid fa-circle-info text-sky-400 text-base mt-0.5"></i>
+        <div class="space-y-1">
+            <strong class="font-bold text-white">Ticketing Partner Disclosure:</strong>
+            <p class="text-slate-300 leading-relaxed">
+                Cinema seat selections and transactions are processed securely via verified deep links to our authorized partners <strong>BookMyShow</strong> and <strong>Cinepolis India</strong>. CinePulse does not process payments or issue physical cinema tickets.
+            </p>
+        </div>
+    </div>
+
+    <!-- Location Status message div -->
+    <div id="location-status-message">
+        {% if user_lat and user_lng %}
+            <div class="text-xs text-emerald-400 flex items-center gap-1.5">
+                <i class="fa-solid fa-circle-check"></i> GPS Proximity Active: Displaying multiplexes sorted by shortest distance from your coordinates.
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Cinemas List -->
+    <div class="space-y-6">
+        {% for cinema in cinemas %}
+            <div class="bg-brand-card border border-brand-border rounded-xl p-6 space-y-4 hover:border-slate-600 transition-all shadow-lg">
+                
+                <!-- Cinema Header -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-3">
+                            <h3 class="font-bold text-lg text-white">{{ cinema.name }}</h3>
+                            <span class="px-2 py-0.5 bg-red-600/20 text-red-400 border border-red-500/30 rounded text-[10px] font-bold uppercase">
+                                {{ cinema.chain }}
+                            </span>
+                            {% if cinema.distance_km > 0 %}
+                                <span class="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded text-[10px] font-bold">
+                                    <i class="fa-solid fa-location-dot mr-1"></i> {{ cinema.distance_km }} km away
+                                </span>
+                            {% endif %}
+                        </div>
+                        <p class="text-xs text-slate-400 flex items-center gap-1">
+                            <i class="fa-solid fa-map-pin text-slate-500"></i> {{ cinema.address }}
+                        </p>
+                    </div>
+
+                    <!-- Direct Partner Link -->
+                    <a href="{{ cinema.partner_website_url }}" target="_blank" rel="noopener noreferrer"
+                       class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-1.5 self-start sm:self-auto shadow">
+                        Book on Partner <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                    </a>
+                </div>
+
+                <!-- Amenities -->
+                <div class="flex items-center gap-2 flex-wrap text-[11px] text-slate-300">
+                    <span class="text-slate-400 font-semibold mr-1">Screens & Formats:</span>
+                    {% for am in cinema.amenities %}
+                        <span class="px-2 py-0.5 bg-slate-900 border border-slate-700 rounded text-slate-300">
+                            {{ am }}
+                        </span>
+                    {% endfor %}
+                </div>
+
+                <!-- Showtimes Grid -->
+                <div class="space-y-2 pt-2">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">Today's Verified Showtimes</h4>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                        {% for show in cinema.showtimes %}
+                            <div class="p-3 bg-slate-900/90 rounded-lg border border-slate-800 flex items-center justify-between gap-3">
+                                <div>
+                                    <h5 class="text-xs font-bold text-white">{{ show.movie_title }}</h5>
+                                    <div class="flex items-center gap-2 mt-1">
+                                        <span class="px-1.5 py-0.2 bg-sky-950 text-sky-400 border border-sky-800 rounded text-[10px] font-mono">
+                                            {{ show.format }}
+                                        </span>
+                                        <span class="text-xs font-bold text-amber-400">{{ show.time }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="text-right">
+                                    <span class="text-xs font-bold text-white block">₹{{ show.price_inr }}</span>
+                                    <a href="{{ cinema.partner_website_url }}" target="_blank" rel="noopener noreferrer"
+                                       class="inline-block mt-1 px-2.5 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-[10px] font-bold transition-colors">
+                                        Select Seat
+                                    </a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+            </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

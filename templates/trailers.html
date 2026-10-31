@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}Official Movie Trailers - Discovery Feed{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+    
+    <!-- Title Section -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+        <div>
+            <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-2">
+                <i class="fa-solid fa-film text-amber-400"></i> Official Theatrical Trailers Feed
+            </h1>
+            <p class="text-xs text-slate-400 mt-1">
+                Verified high-definition teasers and trailers directly from official studios across Bollywood, Hollywood & Indian regional cinema.
+            </p>
+        </div>
+
+        <!-- Freshness Indicator -->
+        <span class="text-xs font-semibold px-3 py-1.5 bg-red-950/80 border border-red-500/40 text-red-300 rounded-lg self-start md:self-auto">
+            <i class="fa-solid fa-clock text-amber-400 mr-1"></i> Live Official Feed ({{ trailers|length }} Trailers)
+        </span>
+    </div>
+
+    <!-- Freshness Window Tabs -->
+    <div class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-thin">
+        {% set tabs = [
+            ('All', 'All Trailers'),
+            ('Latest', '🔥 Latest (48 Hours)'),
+            ('Last7Days', 'Last 7 Days'),
+            ('Last30Days', 'Last 30 Days'),
+            ('Upcoming', '🎟️ Upcoming Cinema Releases')
+        ] %}
+        {% for key, label in tabs %}
+            {% set is_sel = (selected_freshness|lower == key|lower) %}
+            <a href="{{ url_for('trailers', freshness=key, industry=selected_industry, q=search_query) }}"
+               class="px-4 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all {% if is_sel %}bg-red-600 text-white shadow-lg shadow-red-950/50{% else %}bg-brand-card text-slate-300 hover:bg-slate-800 hover:text-white border border-brand-border{% endif %}">
+                {{ label }}
+            </a>
+        {% endfor %}
+    </div>
+
+    <!-- Filter & Search Controls -->
+    <form action="{{ url_for('trailers') }}" method="get" class="bg-brand-card border border-brand-border rounded-xl p-4 flex flex-col md:flex-row items-center gap-3">
+        <input type="hidden" name="freshness" value="{{ selected_freshness }}" />
+        
+        <div class="w-full md:w-1/3">
+            <select name="industry" class="w-full bg-slate-900 border border-slate-700 text-xs text-slate-200 rounded-lg px-3 py-2">
+                <option value="All" {% if selected_industry == 'All' %}selected{% endif %}>All Industries (Unified)</option>
+                <option value="Bollywood" {% if selected_industry == 'Bollywood' %}selected{% endif %}>Bollywood</option>
+                <option value="Hollywood" {% if selected_industry == 'Hollywood' %}selected{% endif %}>Hollywood</option>
+                <option value="South Indian" {% if selected_industry == 'South Indian' %}selected{% endif %}>South Indian Cinema</option>
+            </select>
+        </div>
+
+        <div class="w-full md:w-2/3 flex items-center gap-2">
+            <input type="text" name="q" value="{{ search_query|default('') }}" placeholder="Search trailers by title or cast..."
+                   class="w-full bg-slate-900 border border-slate-700 text-xs text-white rounded-lg px-3 py-2" />
+            <button type="submit" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-semibold whitespace-nowrap transition-colors">
+                Search
+            </button>
+        </div>
+    </form>
+
+    <!-- Trailers Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for trailer in trailers %}
+            <div class="bg-brand-card rounded-xl overflow-hidden border border-brand-border flex flex-col justify-between group hover:border-slate-600 transition-all shadow-lg">
+                
+                <!-- 16:9 Official Thumbnail Container -->
+                <div class="relative w-full aspect-video overflow-hidden bg-slate-900">
+                    <img src="{{ trailer.official_thumbnail_url }}" 
+                         alt="{{ trailer.title }}" 
+                         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    
+                    <!-- Top Status Badges -->
+                    <div class="absolute top-2 left-2 flex items-center gap-1.5 z-10">
+                        <span class="px-2 py-0.5 bg-black/70 backdrop-blur-md text-amber-400 font-bold text-[10px] rounded uppercase">
+                            {{ trailer.industry }}
+                        </span>
+                        {% if trailer.upcoming_cinema_release_date %}
+                            <span class="px-2 py-0.5 bg-sky-600/90 text-white font-bold text-[10px] rounded uppercase">
+                                In Cinemas {{ trailer.upcoming_cinema_release_date.strftime('%b %d') }}
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Duration Badge -->
+                    <span class="absolute bottom-2 right-2 px-2 py-0.5 bg-black/80 text-white text-[10px] font-mono rounded">
+                        {{ (trailer.duration_seconds // 60) }}:{{ "%02d"|format(trailer.duration_seconds % 60) }}
+                    </span>
+
+                    <!-- Big Play Button Overlay -->
+                    <a href="https://www.youtube.com/watch?v={{ trailer.youtube_video_id }}" 
+                       target="_blank" 
+                       rel="noopener noreferrer"
+                       class="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-black/20 transition-colors">
+                        <div class="w-12 h-12 rounded-full bg-red-600/90 text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-play ml-0.5 text-base"></i>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Trailer Metadata -->
+                <div class="p-4 space-y-3 flex-grow flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-bold text-sm text-white group-hover:text-amber-400 transition-colors line-clamp-1" title="{{ trailer.title }}">
+                            {{ trailer.title }}
+                        </h3>
+                        <p class="text-[11px] text-slate-400 mt-1 line-clamp-1">
+                            Cast: {{ trailer.cast_names }}
+                        </p>
+                        <p class="text-[10px] text-slate-400 mt-0.5">
+                            Director: {{ trailer.director }} &nbsp;•&nbsp; Channel: <span class="text-slate-300 font-medium">{{ trailer.official_channel_name }}</span>
+                        </p>
+                    </div>
+
+                    <div class="pt-3 border-t border-slate-800 flex items-center justify-between text-xs">
+                        <a href="https://www.youtube.com/watch?v={{ trailer.youtube_video_id }}" 
+                           target="_blank" 
+                           rel="noopener noreferrer"
+                           class="text-red-400 hover:text-red-300 font-semibold flex items-center gap-1">
+                            <i class="fa-brands fa-youtube"></i> Watch on YouTube <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+                        </a>
+
+                        {% if trailer.upcoming_cinema_release_date %}
+                            <a href="{{ url_for('cinemas') }}" class="text-sky-400 hover:text-sky-300 font-semibold flex items-center gap-1">
+                                <i class="fa-solid fa-ticket text-[10px]"></i> Book Tickets
+                            </a>
+                        {% endif %}
+                    </div>
+
+                </div>
+
+            </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

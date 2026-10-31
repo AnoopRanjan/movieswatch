@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Free Full Movies - Unified Global & Indian Catalogue{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+    
+    <!-- Title Section -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+        <div>
+            <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-2">
+                <i class="fa-brands fa-youtube text-red-500"></i> Free Full-Length Movies
+            </h1>
+            <p class="text-xs text-slate-400 mt-1">
+                Unified entertainment stream: Bollywood, Hollywood & Indian regional cinema together in one single catalogue.
+            </p>
+        </div>
+
+        <span class="text-xs font-semibold px-3 py-1.5 bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 rounded-lg self-start md:self-auto">
+            <i class="fa-solid fa-circle-check text-emerald-400 mr-1"></i> {{ movies|length }} Titles Available Free
+        </span>
+    </div>
+
+    <!-- Multi-Filter Bar (Industry & Language as query filters, NOT separate tabs) -->
+    <form action="{{ url_for('free_movies') }}" method="get" class="bg-brand-card border border-brand-border rounded-xl p-4 space-y-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+            
+            <!-- Industry Filter -->
+            <div>
+                <label class="block text-[11px] font-semibold uppercase text-slate-400 mb-1">Industry Filter</label>
+                <select name="industry" class="w-full bg-slate-900 border border-slate-700 text-xs text-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-red-500">
+                    <option value="All" {% if selected_industry == 'All' %}selected{% endif %}>All Industries (Unified)</option>
+                    <option value="Bollywood" {% if selected_industry == 'Bollywood' %}selected{% endif %}>Bollywood (Hindi Cinema)</option>
+                    <option value="Hollywood" {% if selected_industry == 'Hollywood' %}selected{% endif %}>Hollywood (International)</option>
+                    <option value="Regional" {% if selected_industry == 'Regional' %}selected{% endif %}>Regional & South Indian</option>
+                </select>
+            </div>
+
+            <!-- Language Filter -->
+            <div>
+                <label class="block text-[11px] font-semibold uppercase text-slate-400 mb-1">Language</label>
+                <select name="language" class="w-full bg-slate-900 border border-slate-700 text-xs text-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-red-500">
+                    <option value="All" {% if selected_language == 'All' %}selected{% endif %}>All Languages</option>
+                    <option value="Hindi" {% if selected_language == 'Hindi' %}selected{% endif %}>Hindi</option>
+                    <option value="English" {% if selected_language == 'English' %}selected{% endif %}>English</option>
+                    <option value="Telugu" {% if selected_language == 'Telugu' %}selected{% endif %}>Telugu</option>
+                    <option value="Malayalam" {% if selected_language == 'Malayalam' %}selected{% endif %}>Malayalam</option>
+                </select>
+            </div>
+
+            <!-- Genre Filter -->
+            <div>
+                <label class="block text-[11px] font-semibold uppercase text-slate-400 mb-1">Genre</label>
+                <select name="genre" class="w-full bg-slate-900 border border-slate-700 text-xs text-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-red-500">
+                    <option value="All" {% if selected_genre == 'All' %}selected{% endif %}>All Genres</option>
+                    {% for g in genres %}
+                        <option value="{{ g.name }}" {% if selected_genre|lower == g.name|lower %}selected{% endif %}>{{ g.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Search Query & Apply Button -->
+            <div>
+                <label class="block text-[11px] font-semibold uppercase text-slate-400 mb-1">Keyword</label>
+                <div class="flex items-center gap-2">
+                    <input type="text" name="q" value="{{ search_query|default('') }}" placeholder="Title..." 
+                           class="w-full bg-slate-900 border border-slate-700 text-xs text-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-red-500" />
+                    <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-semibold transition-colors">
+                        Apply
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </form>
+
+    <!-- Movies Grid -->
+    {% if movies %}
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {% for movie in movies %}
+                {% include '_movie_card.html' %}
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="bg-brand-card border border-brand-border rounded-xl p-12 text-center space-y-3">
+            <i class="fa-solid fa-film text-4xl text-slate-600"></i>
+            <h3 class="text-base font-bold text-white">No Movies Matched Filter</h3>
+            <p class="text-xs text-slate-400">Try selecting "All Industries" or clearing search parameters.</p>
+            <a href="{{ url_for('free_movies') }}" class="inline-block mt-2 px-4 py-2 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-700">
+                Reset Filters
+            </a>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}
