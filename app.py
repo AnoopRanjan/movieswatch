@@ -14,7 +14,7 @@ app.secret_key = "cinepulse-production-secret-key-2026"
 
 @app.after_request
 def add_security_headers(response):
-    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Referrer-Policy"] = "no-referrer-when-downgrade"
     response.headers["X-Content-Type-Options"] = "nosniff"
     return response
 

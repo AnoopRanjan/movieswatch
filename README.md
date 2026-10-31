@@ -55,10 +55,14 @@ CinePulse combines a cinematic, responsive front-end with a high-performance **P
 - **Genre Pill Filters with Live Counts:** Real-time filtering across Action, Comedy, Romance, Drama, Crime, Family with active counter badges.
 - **In-Page Keyword Search:** Instant search filter across movie titles, descriptions, and actor names.
 
-### 3. Free Movie Streaming — Verified Legal YouTube Integration
-- **Official YouTube IFrame Player API:** 100% compliant player with zero overlay obstruction, embedded with `strict-origin-when-cross-origin` referrer policy, `origin` validation, and `enablejsapi=1`.
-- **Zero "Playback ID" Error (150/153):** Handled through verified embeddable video IDs catalogued directly from authorized studio channels (Yash Raj Films, Rajshri, Shemaroo, Ultra Movie Parlour, Universal Pictures, Warner Bros.).
-- **Automatic Fallback CDN Player:** One-click backup switch to authorized Content Delivery Network (CDN) MP4 video stream if client network blocks third-party YouTube embeds.
+### 3. Free Movie Streaming — Verified Legal YouTube Integration & Multi-Source Engine
+- **100% Complete Full-Length Movies:** Verified complete, unabridged feature films from official studio channels (*Goldmines Bollywood*, *Rajshri*, *Shemaroo Comedy*, *Venus Bollywood*, *NH Studioz*, *Blender Studio*, *Timeless Classics*). No trailers, teasers, or incomplete multi-part segments.
+- **Permanent "Playback ID" Resolution:**
+  - Resolved `youtube-nocookie.com` studio token block by utilizing the official `youtube.com/embed` engine.
+  - Corrected `Referrer-Policy` to `no-referrer-when-downgrade` across Flask headers and meta tags so local development browsers send valid referrers to YouTube.
+  - Eliminated trailing-slash origin mismatches and browser autoplay policy blocks.
+- **Multi-Source Stream Selector:** Interactive switcher bar above player with **Server 1 (YouTube Official)**, **Server 2 (Backup CDN)**, and **Watch in New Tab**.
+- **Intelligent Error Recovery Overlay:** Automatically detects embed restrictions (Error 150/101/2/5) and displays 1-click fallback buttons to open the official YouTube release or switch to backup high-speed CDN.
 - **Resilient Original Thumbnails:** Direct official studio thumbnails (`img.youtube.com/vi/{id}/maxresdefault.jpg`) with automatic fallback to `hqdefault.jpg`.
 
 ### 4. Movie Trailer Discovery Hub (`/trailers`)

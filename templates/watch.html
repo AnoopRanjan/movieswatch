@@ -31,21 +31,53 @@
         <!-- Left / Player Column -->
         <div id="player-column" class="lg:col-span-8 space-y-4">
             
+            <!-- Multi-Source Stream Selector Bar (Server 1 / Server 2 / New Tab) -->
+            <div class="flex flex-wrap items-center justify-between gap-2 p-2 bg-slate-900/90 border border-slate-800 rounded-xl">
+                <div class="flex items-center gap-1.5">
+                    <span class="text-[11px] text-slate-400 font-semibold px-2 hidden sm:inline">Stream Source:</span>
+                    
+                    <button id="tab-source-yt" 
+                            onclick="CinePulsePlayer.switchSource('youtube')"
+                            class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-red-600 text-white flex items-center gap-1.5 shadow">
+                        <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+                        <i class="fa-brands fa-youtube"></i> Server 1 (YouTube Official)
+                    </button>
+
+                    <button id="tab-source-cdn" 
+                            onclick="CinePulsePlayer.switchSource('fallback')"
+                            class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 flex items-center gap-1.5">
+                        <i class="fa-solid fa-tower-broadcast text-amber-400"></i> Server 2 (Backup CDN)
+                    </button>
+                </div>
+
+                <!-- Direct YouTube Watch Link (Zero-Error Guarantee) -->
+                {% if movie.youtube_video_id %}
+                <a href="{{ movie.direct_youtube_watch_url }}" 
+                   target="_blank" 
+                   rel="noopener noreferrer"
+                   title="Open movie directly on official studio YouTube channel in a new tab"
+                   class="px-3 py-1.5 bg-red-600/20 hover:bg-red-600 text-red-300 hover:text-white border border-red-500/40 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5">
+                    <i class="fa-brands fa-youtube text-sm"></i> Watch in New Tab
+                    <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                </a>
+                {% endif %}
+            </div>
+
             <!-- Video Player Container with 16:9 Aspect Ratio -->
             <div id="player-wrapper" class="relative w-full aspect-video bg-black rounded-xl overflow-hidden shadow-2xl border border-slate-800">
                 
-                <!-- Main YouTube Official Studio Player -->
+                <!-- Main YouTube Official Studio Player (Clean Embed) -->
                 <iframe id="main-video-player"
                         class="w-full h-full"
-                        src="https://www.youtube-nocookie.com/embed/{{ movie.youtube_video_id }}?autoplay=1&rel=0&modestbranding=1&enablejsapi=1&origin={{ request.host_url|urlencode }}"
+                        src="https://www.youtube.com/embed/{{ movie.youtube_video_id }}?rel=0&modestbranding=1&enablejsapi=1"
                         title="{{ movie.title }} - Official Stream"
                         frameborder="0"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                        referrerpolicy="strict-origin-when-cross-origin"
+                        referrerpolicy="no-referrer-when-downgrade"
                         allowfullscreen>
                 </iframe>
 
-                <!-- Fallback HTML5 Player (Zero-Error redundancy) -->
+                <!-- Fallback HTML5 Player (Zero-Error Redundancy) -->
                 <video id="html5-fallback-player" 
                        class="w-full h-full" 
                        style="display:none;" 
@@ -55,9 +87,40 @@
                     Your browser does not support HTML5 video playback.
                 </video>
 
+                <!-- Intelligent Embed Error & Restriction Recovery Overlay -->
+                <div id="player-error-overlay" 
+                     class="absolute inset-0 bg-slate-950/95 backdrop-blur-md flex-col items-center justify-center p-6 text-center space-y-4 z-20"
+                     style="display: none;">
+                    <div class="w-16 h-16 rounded-full bg-red-600/20 text-red-500 flex items-center justify-center text-3xl border border-red-500/40 shadow-lg">
+                        <i class="fa-brands fa-youtube"></i>
+                    </div>
+                    
+                    <div class="space-y-1.5 max-w-md">
+                        <h3 class="text-base sm:text-lg font-bold text-white">YouTube Embed Restriction Detected</h3>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            The official studio channel (<strong>{{ movie.official_channel_name }}</strong>) restricts embedded playback on local origins or private browsing. You can watch the full, complete movie instantly using either option below:
+                        </p>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row items-center gap-3 pt-2">
+                        <a href="{{ movie.direct_youtube_watch_url }}" 
+                           target="_blank" 
+                           rel="noopener noreferrer"
+                           class="w-full sm:w-auto px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-2 shadow-lg transition-all">
+                            <i class="fa-brands fa-youtube text-base"></i> Watch Full Movie on YouTube (New Tab)
+                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                        </a>
+
+                        <button onclick="CinePulsePlayer.switchSource('fallback')"
+                                class="w-full sm:w-auto px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-2 border border-slate-700 transition-all">
+                            <i class="fa-solid fa-tower-broadcast text-amber-400"></i> Switch to Backup Stream
+                        </button>
+                    </div>
+                </div>
+
             </div>
 
-            <!-- Player Utility Bar (Normal / Theatre / Fullscreen / Direct Tab / Backup Stream) -->
+            <!-- Player Utility Bar (Normal / Theatre / Fullscreen / Watchlist) -->
             <div class="flex flex-wrap items-center justify-between gap-3 p-3 bg-brand-card border border-brand-border rounded-xl">
                 
                 <div class="flex items-center gap-2">
@@ -74,42 +137,42 @@
                         <i class="fa-solid fa-maximize text-[11px]"></i> Fullscreen
                     </button>
 
-                    <!-- Backup Stream Switcher -->
-                    <button onclick="CinePulsePlayer.switchSource('fallback')"
-                            title="Switch to backup CDN stream in case of network restriction"
-                            class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700 rounded-lg text-xs font-medium transition-colors hidden sm:flex items-center gap-1.5">
-                        <i class="fa-solid fa-tower-broadcast text-[11px] text-amber-400"></i> Backup CDN
+                    <!-- Troubleshoot Button -->
+                    <button onclick="CinePulsePlayer.showErrorOverlay('manual')"
+                            class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-amber-400 border border-slate-700 rounded-lg text-xs font-medium transition-colors hidden sm:flex items-center gap-1.5">
+                        <i class="fa-solid fa-circle-question text-[11px] text-amber-400"></i> Video Not Playing?
                     </button>
                 </div>
 
                 <div class="flex items-center gap-2">
-                    <!-- Watch in New Tab Button -->
-                    {% if movie.youtube_video_id %}
-                    <a href="{{ movie.direct_youtube_watch_url }}" 
-                       target="_blank" 
-                       rel="noopener noreferrer"
-                       class="px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-all shadow flex items-center gap-1.5">
-                        <i class="fa-brands fa-youtube text-sm"></i> Watch in New Tab
-                        <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
-                    </a>
-                    {% endif %}
-
                     <!-- Watchlist Toggle -->
                     <button onclick="toggleWatchlist({{ movie.id }}, this)"
-                            class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700 rounded-lg text-xs font-medium transition-colors">
+                            class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5">
                         <i class="fa-regular fa-bookmark"></i>
+                        <span>Add to Watchlist</span>
                     </button>
                 </div>
 
             </div>
 
-            <!-- YouTube Zero-Error Verification Status Banner -->
-            <div id="source-status-banner" class="p-3 bg-slate-900/90 border border-slate-800 rounded-xl text-xs text-slate-300 flex items-center justify-between">
+            <!-- YouTube Playback Status & Instant Troubleshooting Bar -->
+            <div id="source-status-banner" class="p-3 bg-slate-900/90 border border-slate-800 rounded-xl text-xs text-slate-300 flex flex-col sm:flex-row items-center justify-between gap-3">
                 <div class="flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-                    <span>Streaming official release from <strong>{{ movie.official_channel_name }}</strong> with strict-origin token validation.</span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Streaming official release from <strong>{{ movie.official_channel_name }}</strong>.</span>
                 </div>
-                <span class="text-[11px] text-emerald-400 font-semibold hidden sm:inline">100% Free of Error 150/153</span>
+                
+                <div class="flex items-center gap-2">
+                    <span class="text-[11px] text-slate-400 hidden md:inline">Issue playing?</span>
+                    <a href="{{ movie.direct_youtube_watch_url }}" target="_blank" rel="noopener noreferrer"
+                       class="px-2.5 py-1 bg-red-600/20 hover:bg-red-600 text-red-300 hover:text-white border border-red-500/40 rounded text-[11px] font-bold flex items-center gap-1 transition-colors">
+                        <i class="fa-brands fa-youtube"></i> Open on YouTube ↗
+                    </a>
+                    <button onclick="CinePulsePlayer.switchSource('fallback')"
+                            class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 rounded text-[11px] font-medium flex items-center gap-1 transition-colors">
+                        <i class="fa-solid fa-tower-broadcast text-amber-400"></i> Backup Stream
+                    </button>
+                </div>
             </div>
 
             <!-- SECTION B: BELOW-PLAYER ADVERTISEMENT SPACE -->
